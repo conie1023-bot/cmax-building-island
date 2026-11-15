@@ -1,0 +1,96 @@
+.site-shell { min-height: 0; }
+header {
+  gap: 12px;
+  padding: 20px clamp(14px, 3vw, 44px);
+  background: linear-gradient(180deg, #102d2b, transparent);
+  pointer-events: none;
+}
+header a, header nav { pointer-events: auto; }
+.brand-name { font-size: 16px; letter-spacing: .09em; white-space: nowrap; }
+.brand-name span { font-size: 13px; margin-left: 4px; }
+.top-btn { background: #123935; white-space: nowrap; }
+.top-btn[aria-expanded="true"], .top-btn[aria-pressed="true"] {
+  background: var(--lime);
+  color: var(--ink);
+  border-color: var(--lime);
+}
+.hero {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  background: radial-gradient(ellipse at 52% 54%, #3c786c, #235b54 54%, #123633 100%);
+}
+.hero::before { content: none; }
+.hero-copy {
+  position: absolute;
+  top: clamp(70px, 12vh, 110px);
+  left: clamp(16px, 3vw, 46px);
+  width: auto;
+  padding: 0;
+  pointer-events: none;
+}
+.hero h1 { margin: 0; font-size: clamp(23px, 3.2vw, 46px); line-height: 1.1; letter-spacing: -.055em; }
+.hero-lede { margin: 8px 0 0; font-size: 13px; }
+.grid-lines { mask-image: none; }
+.hero .island-stage { inset: 0; }
+.map-caption, .map-tools { position: absolute; z-index: 2; bottom: max(18px, env(safe-area-inset-bottom)); }
+.map-caption { left: clamp(14px, 3vw, 44px); font-size: 12px; line-height: 1.55; pointer-events: none; }
+.map-caption span { color: #c4d8d1; font-size: 11px; }
+.map-tools { right: clamp(14px, 3vw, 44px); display: flex; gap: 5px; }
+.map-tools .top-btn { min-width: 38px; padding-inline: 10px; }
+.map-panel[hidden] { display: none; }
+main:has(.map-panel:not([hidden])) .hero-copy { visibility: hidden; }
+.map-panel {
+  position: fixed;
+  z-index: 11;
+  inset: 78px auto 68px clamp(14px, 3vw, 44px);
+  width: min(390px, 38vw);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+  border: 1px solid #e4ded0;
+  border-radius: 12px;
+  color: var(--ink);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+.panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.panel-heading h2 { font-size: 28px; letter-spacing: -.05em; }
+.panel-close { border: 1px solid var(--line); border-radius: 50%; color: var(--forest); background: transparent; width: 36px; height: 36px; font-size: 20px; }
+.map-panel .controls { display: flex; flex-direction: column-reverse; align-items: stretch; gap: 10px; margin: 12px 0; }
+.map-panel .search { min-width: 0; margin: 0; }
+.map-panel .island-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+.map-panel .card {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  min-height: 0;
+  padding: 12px 32px 12px 12px;
+  width: 100%;
+  text-align: left;
+}
+.map-panel .card:hover { background: #e8edde; transform: none; box-shadow: none; }
+.map-panel .card::before { content: none; }
+.map-panel .card h3 { font-size: 16px; line-height: 1.35; letter-spacing: 0; margin: 5px 0 2px; max-width: none; }
+.map-panel .card p { max-width: none; }
+.map-panel .card-tag { display: block; }
+.map-panel .card-tag span + span { display: none; }
+.map-panel .card-arrow { font-size: 14px; right: 12px; top: 12px; }
+#resultCount { font-size: 12px; color: var(--muted); }
+.design-steps { padding-left: 24px; }
+.design-steps li { border-bottom: 1px solid var(--line); padding: 12px 0; }
+.design-steps h3 { margin: 0; font-size: 16px; }
+.design-steps p { margin: 6px 0 0; font-size: 13px; line-height: 1.65; color: var(--muted); }
+button:focus-visible, .search input:focus-visible { outline: 2px solid #638162; outline-offset: 3px; }
+.detail-top { padding-right: 26px; }
+@media (max-width: 680px) {
+  header { padding: 12px 14px; }
+  .header-actions .top-btn:not(:last-child) { display: block; }
+  .header-actions { gap: 5px; }
+  .header-actions .top-btn { padding-inline: 9px; }
+  .map-panel { inset: auto 12px max(65px, calc(env(safe-area-inset-bottom) + 54px)); width: auto; max-height: min(53dvh, 480px); padding: 14px; }
+  .map-caption { font-size: 11px; }
+  .map-tools .top-btn { padding-inline: 8px; min-width: 32px; }
+  .brand { gap: 7px; }
+  .brand-mark { width: 27px; height: 27px; }
+}
