@@ -92,6 +92,8 @@
     .meta-box { border-top: 1px solid var(--ink); padding-top: 10px; } .meta-box small { display: block; color: var(--muted); font-size: 10px; margin-bottom: 8px; } .meta-box b { font-size: 14px; }
     .detail-block { margin-top: 35px; padding-top: 23px; border-top: 1px solid var(--line); } .detail-block h4 { margin: 0 0 10px; font-size: 12px; letter-spacing: .15em; text-transform: uppercase; } .detail-block p { max-width: 560px; color: var(--muted); line-height: 1.7; margin: 0; font-size: 14px; }
     .source-link { display: inline-flex; align-items: center; gap: 7px; margin-top: 16px; color: var(--forest-2); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 4px; } .source-link:hover { color: var(--coral); }
+    .next-island { display: block; margin-top: 12px; padding: 10px 14px; border: 1px solid var(--forest); border-radius: 5px; background: var(--forest); color: var(--paper); font-size: 14px; font-weight: 700; text-align: left; }
+    .next-island:hover { background: var(--forest-2); }
     .timeline { background: var(--forest); color: var(--paper); padding: 106px 5vw 120px; }
     .timeline-inner { max-width: 1280px; margin: auto; } .timeline .section-kicker { color: var(--lime); } .timeline h2 { max-width: 560px; }
     .timeline-intro { max-width: 390px; margin: 25px 0 60px; color: rgba(244,240,232,.67); line-height: 1.7; font-size: 14px; }
@@ -154,7 +156,32 @@
       </section>
     </main>
   </div>
-  <div class="detail" id="detail" aria-hidden="true"><article class="detail-panel" role="dialog" aria-modal="true" aria-labelledby="detailTitle"><button class="close" id="closeDetail" aria-label="關閉">×</button><div class="detail-top"><span class="detail-no" id="detailNo">01 / WORK</span><span class="detail-no" id="detailType">PROJECT</span></div><h3 id="detailTitle">台泥 DAKA 園區</h3><p class="lead" id="detailLead"></p><div class="detail-meta"><div class="meta-box"><small>作品類型</small><b id="detailRelation"></b></div><div class="meta-box"><small>地點 / 規模</small><b id="detailScale"></b></div><div class="meta-box"><small>資料角色</small><b id="detailState"></b></div></div><div class="detail-block"><h4>作品筆記</h4><p id="detailNote"></p></div><div class="detail-block"><h4>連到下一座島 →</h4><p id="detailNext"></p><a class="source-link" id="detailSource" href="#" target="_blank" rel="noreferrer">查看公開資料 ↗</a></div></article></div>
+  <div class="detail" id="detail" aria-hidden="true">
+    <article class="detail-panel" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+      <button class="close" id="closeDetail" aria-label="關閉">×</button>
+      <div class="detail-top">
+        <span class="detail-no" id="detailNo">01 / WORK</span>
+        <span class="detail-no" id="detailType">PROJECT</span>
+      </div>
+      <h3 id="detailTitle" tabindex="-1">台泥 DAKA 園區</h3>
+      <p class="lead" id="detailLead"></p>
+      <div class="detail-meta">
+        <div class="meta-box"><small>作品類型</small><b id="detailRelation"></b></div>
+        <div class="meta-box"><small>地點 / 規模</small><b id="detailScale"></b></div>
+        <div class="meta-box"><small>資料角色</small><b id="detailState"></b></div>
+      </div>
+      <div class="detail-block">
+        <h4>作品筆記</h4>
+        <p id="detailNote"></p>
+        <a class="source-link" id="detailSource" href="#" target="_blank" rel="noreferrer">查看公開資料 ↗</a>
+      </div>
+      <div class="detail-block">
+        <h4>連到下一座島</h4>
+        <p id="detailNext"></p>
+        <button type="button" class="next-island" id="nextIsland">前往下一座島 →</button>
+      </div>
+    </article>
+  </div>
   <script>
     const islands = [
       { no:'01', title:'台泥 DAKA 園區', en:'TCC DAKA PARK', category:'built', tag:'花蓮 / 01', lead:'把休憩、地方文化與永續景觀編成一座東台灣的入口花園。', relation:'已落地 × 景觀整合', scale:'花蓮和平村', state:'公開資料／參賽作品', note:'公開資料將 DAKA 園區描述為結合休憩服務、綠能減碳與部落文化展示的園區；規劃包含雨水循環、植物復育與可供社區使用的開放空間。張峰溢以 CMAX ARCHITECTS STUDIO 執業建築師身分參與，並獲 2024 ISARCH Award Silver Award。', next:'中和國民運動中心：從地景與社區，走進大尺度的公共運動建築。', source:'https://www.ad.ntust.edu.tw/%E5%8F%B0%E7%A7%91%E5%BB%BA%E7%AF%891%E4%BD%8D%E5%9C%A8%E8%81%B7%E7%8F%AD%E5%BB%BA%E7%AF%89%E5%B8%AB%E3%80%8111%E4%BD%8D%E4%B8%80%E8%88%AC%E7%94%9F%E5%8F%83%E5%8A%A0isarch-award%E6%A6%AE%E7%8D%B21/' },
@@ -166,6 +193,11 @@
     ];
     const grid = document.getElementById('islandGrid');
     const detail = document.getElementById('detail');
+    const detailPanel = detail.querySelector('.detail-panel');
+    const detailTitle = document.getElementById('detailTitle');
+    const nextIslandButton = document.getElementById('nextIsland');
+    const nextIslandByNumber = { '01':'02', '02':'03', '03':'06', '04':'01', '05':'02', '06':'03' };
+    let detailOpener = null;
     let currentFilter = 'all';
     function render() {
       const query = document.getElementById('search').value.trim().toLowerCase();
@@ -174,8 +206,37 @@
       grid.innerHTML = visible.length ? visible.map(item => `<article class="card" data-no="${item.no}" tabindex="0" role="button" aria-label="探索${item.title}"><div class="card-tag"><span>${item.tag}</span><span>${item.en}</span></div><span class="card-arrow">↗</span><h3>${item.title}</h3><p>${item.lead}</p></article>`).join('') : '<div class="empty">找不到相符的島嶼，換一個關鍵字試試。</div>';
       grid.querySelectorAll('.card').forEach(card => { card.addEventListener('click', () => openDetail(card.dataset.no)); card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(card.dataset.no); } }); });
     }
-    function openDetail(no) { const item = islands.find(i => i.no === no); if (!item) return; document.getElementById('detailNo').textContent = `${item.no} / WORK`; document.getElementById('detailType').textContent = item.en.toUpperCase(); document.getElementById('detailTitle').textContent = item.title; document.getElementById('detailLead').textContent = item.lead; document.getElementById('detailRelation').textContent = item.relation; document.getElementById('detailScale').textContent = item.scale; document.getElementById('detailState').textContent = item.state; document.getElementById('detailNote').textContent = item.note; document.getElementById('detailNext').textContent = item.next; const source = document.getElementById('detailSource'); source.href = item.source; detail.classList.add('open'); detail.setAttribute('aria-hidden', 'false'); document.getElementById('closeDetail').focus(); }
-    function closeDetail() { detail.classList.remove('open'); detail.setAttribute('aria-hidden', 'true'); }
+    function openDetail(no) {
+      const item = islands.find(island => island.no === no);
+      if (!item) return;
+      if (!detail.classList.contains('open')) detailOpener = document.activeElement;
+      const nextIsland = islands.find(island => island.no === nextIslandByNumber[no]);
+      document.getElementById('detailNo').textContent = `${item.no} / WORK`;
+      document.getElementById('detailType').textContent = item.en.toUpperCase();
+      detailTitle.textContent = item.title;
+      document.getElementById('detailLead').textContent = item.lead;
+      document.getElementById('detailRelation').textContent = item.relation;
+      document.getElementById('detailScale').textContent = item.scale;
+      document.getElementById('detailState').textContent = item.state;
+      document.getElementById('detailNote').textContent = item.note;
+      document.getElementById('detailNext').textContent = item.next;
+      document.getElementById('detailSource').href = item.source;
+      nextIslandButton.dataset.no = nextIsland?.no ?? '';
+      nextIslandButton.textContent = nextIsland ? `前往${nextIsland.title} →` : '';
+      nextIslandButton.hidden = !nextIsland;
+      detail.classList.add('open');
+      detail.setAttribute('aria-hidden', 'false');
+      detailPanel.scrollTop = 0;
+      detailTitle.focus({ preventScroll: true });
+    }
+    function closeDetail() {
+      if (!detail.classList.contains('open')) return;
+      detail.classList.remove('open');
+      detail.setAttribute('aria-hidden', 'true');
+      detailOpener?.focus({ preventScroll: true });
+      detailOpener = null;
+    }
+    nextIslandButton.addEventListener('click', () => openDetail(nextIslandButton.dataset.no));
     document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click', () => { currentFilter = btn.dataset.filter; document.querySelectorAll('.filter').forEach(b => b.classList.toggle('active', b === btn)); render(); }));
     document.getElementById('search').addEventListener('input', render); document.getElementById('closeDetail').addEventListener('click', closeDetail); detail.addEventListener('click', e => { if (e.target === detail) closeDetail(); }); document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
     const panelButtons = [...document.querySelectorAll('[data-panel]')];
