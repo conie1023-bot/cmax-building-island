@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="CMAX 建築島：以一座可探索的城市，理解建築如何連結生活、材料與地方。" />
+  <title>CMAX 建築島｜把空間，連起來</title>
+  <style>
+    :root {
+      --ink: #16231f;
+      --muted: #697772;
+      --paper: #f4f0e8;
+      --paper-2: #e9e3d8;
+      --forest: #153e38;
+      --forest-2: #225b50;
+      --lime: #d5df7e;
+      --coral: #f17e61;
+      --blue: #8bc3c5;
+      --gold: #d8aa55;
+      --line: rgba(22, 35, 31, .14);
+      --shadow: 0 28px 60px rgba(22, 35, 31, .16);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: var(--paper); overflow-x: hidden; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .site-shell { min-height: 100vh; position: relative; }
+    .grain { position: fixed; inset: 0; pointer-events: none; z-index: 20; opacity: .12; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E"); mix-blend-mode: multiply; }
+    header { position: fixed; top: 0; left: 0; right: 0; z-index: 12; display: flex; align-items: center; justify-content: space-between; padding: 22px 34px; color: var(--paper); mix-blend-mode: normal; }
+    .brand { display: flex; align-items: center; gap: 13px; color: var(--paper); text-decoration: none; }
+    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid rgba(244,240,232,.7); border-radius: 50%; font-size: 11px; letter-spacing: -.08em; }
+    .brand-name { font-size: 13px; letter-spacing: .18em; font-weight: 750; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .top-btn { border: 1px solid rgba(244,240,232,.36); color: var(--paper); background: rgba(21,62,56,.26); backdrop-filter: blur(10px); padding: 10px 14px; border-radius: 999px; font-size: 12px; letter-spacing: .06em; }
+    .top-btn:hover, .top-btn.active { background: var(--lime); color: var(--ink); border-color: var(--lime); }
+    .hero { min-height: 100vh; position: relative; isolation: isolate; overflow: hidden; background: linear-gradient(150deg, #163f39 0%, #27685a 48%, #98b8a3 100%); color: var(--paper); }
+    .hero::before { content: ""; position: absolute; inset: 0; opacity: .36; background: radial-gradient(circle at 72% 20%, rgba(213,223,126,.55), transparent 29%), radial-gradient(circle at 8% 88%, rgba(241,126,97,.44), transparent 25%); z-index: -1; }
+    .hero-copy { position: relative; z-index: 2; width: min(660px, 86vw); padding: 155px 0 0 8vw; }
+    .eyebrow { display: flex; gap: 14px; align-items: center; color: var(--lime); text-transform: uppercase; font-size: 11px; letter-spacing: .2em; }
+    .eyebrow::before { content: ""; width: 42px; height: 1px; background: var(--lime); }
+    h1 { margin: 20px 0 18px; font-size: clamp(58px, 9.6vw, 142px); line-height: .86; letter-spacing: -.09em; font-weight: 600; max-width: 710px; }
+    .hero-lede { max-width: 480px; color: rgba(244,240,232,.84); font-size: 17px; line-height: 1.75; }
+    .hero-note { margin-top: 37px; display: flex; gap: 24px; flex-wrap: wrap; color: rgba(244,240,232,.68); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+    .hero-note span { display: inline-flex; gap: 8px; align-items: center; }
+    .hero-note b { color: var(--lime); font-size: 18px; font-weight: 500; letter-spacing: 0; }
+    .island-stage { position: absolute; inset: 7vh 0 0 34%; z-index: 1; cursor: grab; touch-action: none; }
+    .island-stage.dragging { cursor: grabbing; }
+    #islandCanvas { display: block; width: 100%; height: 100%; outline: none; }
+    #islandCanvas:focus-visible { outline: 2px solid var(--lime); outline-offset: -6px; }
+    .scene-help { position: absolute; right: 3vw; bottom: 26px; display: flex; gap: 8px; align-items: center; color: rgba(244,240,232,.85); font-size: 11px; letter-spacing: .09em; pointer-events: none; }
+    .scene-help span { padding: 7px 10px; border: 1px solid rgba(244,240,232,.36); border-radius: 99px; background: rgba(15,58,52,.35); }
+    .scene-tooltip { position: absolute; z-index: 3; padding: 8px 12px; border-radius: 3px; background: var(--paper); color: var(--forest); font-size: 12px; font-weight: 700; pointer-events: none; transform: translate(15px, 15px); opacity: 0; transition: opacity .15s; }
+    .scene-tooltip.visible { opacity: 1; }
+    .grid-lines { position: absolute; inset: 0; opacity: .12; background-image: linear-gradient(rgba(244,240,232,.4) 1px, transparent 1px), linear-gradient(90deg, rgba(244,240,232,.4) 1px, transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(to bottom, transparent, black 16%, black 74%, transparent); }
+    .scroll-cue { position: absolute; bottom: 28px; left: 8vw; display: flex; align-items: center; gap: 10px; color: var(--lime); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; }
+    .scroll-cue::before { content: ""; width: 1px; height: 42px; background: var(--lime); }
+    .explorer { position: relative; padding: 105px 5vw 120px; background: var(--paper); }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 30px; max-width: 1280px; margin: 0 auto 48px; }
+    .section-kicker { margin-bottom: 11px; font-size: 11px; color: var(--forest-2); letter-spacing: .2em; text-transform: uppercase; }
+    h2 { margin: 0; font-size: clamp(40px, 6vw, 86px); line-height: .92; letter-spacing: -.08em; font-weight: 600; }
+    .section-intro { max-width: 360px; color: var(--muted); line-height: 1.7; font-size: 14px; }
+    .controls { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); max-width: 1280px; margin: 0 auto 28px; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter { border: 1px solid var(--line); background: transparent; padding: 8px 13px; border-radius: 999px; font-size: 12px; color: var(--muted); }
+    .filter.active, .filter:hover { background: var(--forest); border-color: var(--forest); color: var(--paper); }
+    .search { position: relative; min-width: 230px; }
+    .search input { width: 100%; border: 0; border-bottom: 1px solid var(--ink); background: transparent; padding: 10px 28px 10px 0; outline: none; font-size: 13px; }
+    .search span { position: absolute; right: 0; top: 8px; color: var(--forest-2); font-size: 16px; }
+    .island-grid { max-width: 1280px; margin: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .card { position: relative; min-height: 260px; padding: 20px; overflow: hidden; border-radius: 4px; background: var(--forest); color: var(--paper); cursor: pointer; transition: transform .25s, box-shadow .25s; }
+    .card:hover, .card.selected { transform: translateY(-7px); box-shadow: var(--shadow); }
+    .card:nth-child(3n) { background: #d6b968; color: var(--ink); } .card:nth-child(4n) { background: #9ec8c2; color: var(--ink); } .card:nth-child(5n) { background: #dd7b60; color: var(--ink); }
+    .card::before { content: ""; position: absolute; width: 205px; height: 180px; right: -55px; bottom: -60px; border-radius: 50%; border: 1px solid currentColor; opacity: .28; box-shadow: 0 0 0 22px rgba(255,255,255,.05), 0 0 0 45px rgba(255,255,255,.05); }
+    .card-tag { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: .15em; opacity: .75; text-transform: uppercase; }
+    .card h3 { position: relative; margin: 45px 0 9px; font-size: 28px; line-height: .95; letter-spacing: -.07em; font-weight: 600; max-width: 160px; }
+    .card p { position: relative; margin: 0; max-width: 210px; font-size: 12px; line-height: 1.55; opacity: .78; }
+    .card-arrow { position: absolute; right: 19px; top: 18px; font-size: 22px; }
+    .card.hidden { display: none; }
+    .connection-strip { max-width: 1280px; margin: 28px auto 0; display: flex; gap: 14px; align-items: center; color: var(--muted); font-size: 11px; }
+    .connection-strip::before { content: ""; width: 80px; height: 1px; background: var(--forest-2); }
+    .detail { display: none; position: fixed; z-index: 30; inset: 0; padding: 30px; background: rgba(21,62,56,.48); backdrop-filter: blur(10px); }
+    .detail.open { display: grid; place-items: center; }
+    .detail-panel { width: min(760px, 94vw); max-height: 90vh; overflow: auto; background: var(--paper); color: var(--ink); padding: clamp(25px, 5vw, 58px); position: relative; box-shadow: 0 30px 100px rgba(0,0,0,.28); }
+    .close { position: absolute; top: 18px; right: 19px; border: 0; background: transparent; color: inherit; font-size: 24px; }
+    .detail-top { display: flex; justify-content: space-between; gap: 15px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+    .detail-no { color: var(--forest-2); font-size: 12px; letter-spacing: .14em; }
+    .detail-panel h3 { font-size: clamp(38px, 6vw, 74px); line-height: .88; letter-spacing: -.08em; margin: 46px 0 18px; max-width: 500px; }
+    .detail-panel .lead { max-width: 560px; color: var(--muted); font-size: 16px; line-height: 1.7; }
+    .detail-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 38px; }
+    .meta-box { border-top: 1px solid var(--ink); padding-top: 10px; } .meta-box small { display: block; color: var(--muted); font-size: 10px; margin-bottom: 8px; } .meta-box b { font-size: 14px; }
+    .detail-block { margin-top: 35px; padding-top: 23px; border-top: 1px solid var(--line); } .detail-block h4 { margin: 0 0 10px; font-size: 12px; letter-spacing: .15em; text-transform: uppercase; } .detail-block p { max-width: 560px; color: var(--muted); line-height: 1.7; margin: 0; font-size: 14px; }
+    .source-link { display: inline-flex; align-items: center; gap: 7px; margin-top: 16px; color: var(--forest-2); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 4px; } .source-link:hover { color: var(--coral); }
+    .timeline { background: var(--forest); color: var(--paper); padding: 106px 5vw 120px; }
+    .timeline-inner { max-width: 1280px; margin: auto; } .timeline .section-kicker { color: var(--lime); } .timeline h2 { max-width: 560px; }
+    .timeline-intro { max-width: 390px; margin: 25px 0 60px; color: rgba(244,240,232,.67); line-height: 1.7; font-size: 14px; }
+    .line { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; padding-top: 27px; border-top: 1px solid rgba(244,240,232,.36); }
+    .line::before { content: ""; position: absolute; top: -5px; left: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 8px rgba(213,223,126,.14); }
+    .milestone small { display: block; color: var(--lime); font-size: 11px; letter-spacing: .16em; margin-bottom: 18px; } .milestone h3 { margin: 0 0 10px; font-size: 21px; letter-spacing: -.04em; } .milestone p { margin: 0; color: rgba(244,240,232,.62); font-size: 12px; line-height: 1.6; max-width: 210px; }
+    footer { padding: 28px 5vw; background: var(--forest); border-top: 1px solid rgba(244,240,232,.2); color: rgba(244,240,232,.54); display: flex; justify-content: space-between; gap: 25px; font-size: 11px; letter-spacing: .08em; }
+    .empty { grid-column: 1 / -1; padding: 45px 0; color: var(--muted); }
+    @media (max-width: 900px) { .island-stage { inset: 22vh 0 0 18%; } .hero-copy { pointer-events: none; } .island-grid { grid-template-columns: repeat(2, 1fr); } .section-head { display: block; } .section-intro { margin-top: 22px; } }
+    @media (max-width: 600px) { header { padding: 16px 18px; } .header-actions .top-btn:not(:last-child) { display: none; } .hero-copy { padding: 116px 22px 0; width: 100%; } h1 { font-size: 61px; } .hero-lede { font-size: 14px; max-width: 310px; } .hero-note { margin-top: 18px; } .island-stage { inset: 40vh 0 0 0; } .scene-help { right: 15px; bottom: 20px; font-size: 9px; } .scene-help span { padding: 6px; } .explorer, .timeline { padding: 76px 22px 86px; } .controls { display: block; } .search { margin-top: 15px; } .island-grid { grid-template-columns: 1fr; } .card { min-height: 210px; } .detail { padding: 12px; } .detail-meta { grid-template-columns: 1fr; } .line { grid-template-columns: 1fr; gap: 30px; } footer { display: block; line-height: 1.8; } footer span { display: block; } }
+  </style>
+  <link rel="stylesheet" href="./map.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="grain"></div>
+    <header>
+      <a href="#top" class="brand" aria-label="CMAX 建築島首頁"><span class="brand-mark">C×</span><span class="brand-name">CMAX <span>建築島</span></span></a>
+      <nav class="header-actions" aria-label="主要導覽">
+        <button class="top-btn" data-panel="explorer" aria-controls="explorer" aria-expanded="false">作品清單</button>
+        <button class="top-btn" data-panel="timeline" aria-controls="timeline" aria-expanded="false">時間軸</button>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="grid-lines"></div>
+        <div class="hero-copy">
+          <h1>把空間，連起來。</h1>
+          <p class="hero-lede">張峰溢建築師與 CMAX · 精選 6 件作品</p>
+        </div>
+        <div class="island-stage" id="islandStage">
+          <canvas id="islandCanvas" tabindex="0" role="img" aria-label="可旋轉的 3D 建築島。拖曳旋轉，滾輪縮放，點選作品開啟介紹；鍵盤方向鍵旋轉、加減鍵縮放、數字 1 至 6 選擇作品。"></canvas>
+          <div class="scene-tooltip" id="sceneTooltip"></div>
+        </div>
+        <div class="map-caption">拖曳旋轉 · 點選作品<br><span>建築量體示意</span></div>
+        <div class="map-tools" role="group" aria-label="地圖控制">
+          <button type="button" class="top-btn" id="mapLinks" aria-pressed="false" title="顯示作品主題之間的連線">關聯線</button>
+          <button type="button" class="top-btn" id="mapZoomOut" aria-label="縮小">−</button>
+          <button type="button" class="top-btn" id="mapZoomIn" aria-label="放大">+</button>
+          <button type="button" class="top-btn" id="mapReset">全景</button>
+        </div>
+      </section>
+
+      <section class="explorer map-panel" id="explorer" aria-labelledby="worksTitle" hidden>
+        <div class="panel-heading"><h2 id="worksTitle">作品清單</h2><button type="button" class="panel-close" aria-label="關閉作品清單">×</button></div>
+        <div class="controls"><div class="filters" role="group" aria-label="作品分類篩選"><button class="filter active" data-filter="all">全部</button><button class="filter" data-filter="built">實踐作品</button><button class="filter" data-filter="competition">競圖提案</button><button class="filter" data-filter="housing">住宅</button><button class="filter" data-filter="public">公共</button></div><label class="search"><input id="search" type="search" placeholder="搜尋作品、城市、關鍵字…" aria-label="搜尋作品"/><span>⌕</span></label></div>
+        <p id="resultCount" role="status"></p>
+        <div class="island-grid" id="islandGrid"></div>
+      </section>
+
+      <section class="timeline map-panel" id="timeline" aria-labelledby="timelineTitle" hidden>
+        <div class="panel-heading"><h2 id="timelineTitle">設計時間軸</h2><button type="button" class="panel-close" aria-label="關閉時間軸">×</button></div>
+        <ol class="design-steps">
+          <li><h3>觀察基地</h3><p>理解氣候、動線、人的活動與基地原有的使用方式。</p></li>
+          <li><h3>發展設計</h3><p>以尺度、光線、材料與結構回應使用需求。</p></li>
+          <li><h3>建造與交付</h3><p>在施工過程中把設計落實到構造和細節。</p></li>
+          <li><h3>投入使用</h3><p>觀察空間如何融入社區日常，並隨使用需求改變。</p></li>
+        </ol>
+      </section>
+    </main>
+  </div>
+  <div class="detail" id="detail" aria-hidden="true"><article class="detail-panel" role="dialog" aria-modal="true" aria-labelledby="detailTitle"><button class="close" id="closeDetail" aria-label="關閉">×</button><div class="detail-top"><span class="detail-no" id="detailNo">01 / WORK</span><span class="detail-no" id="detailType">PROJECT</span></div><h3 id="detailTitle">台泥 DAKA 園區</h3><p class="lead" id="detailLead"></p><div class="detail-meta"><div class="meta-box"><small>作品類型</small><b id="detailRelation"></b></div><div class="meta-box"><small>地點 / 規模</small><b id="detailScale"></b></div><div class="meta-box"><small>資料角色</small><b id="detailState"></b></div></div><div class="detail-block"><h4>作品筆記</h4><p id="detailNote"></p></div><div class="detail-block"><h4>連到下一座島 →</h4><p id="detailNext"></p><a class="source-link" id="detailSource" href="#" target="_blank" rel="noreferrer">查看公開資料 ↗</a></div></article></div>
+  <script>
+    const islands = [
+      { no:'01', title:'台泥 DAKA 園區', en:'TCC DAKA PARK', category:'built', tag:'花蓮 / 01', lead:'把休憩、地方文化與永續景觀編成一座東台灣的入口花園。', relation:'已落地 × 景觀整合', scale:'花蓮和平村', state:'公開資料／參賽作品', note:'公開資料將 DAKA 園區描述為結合休憩服務、綠能減碳與部落文化展示的園區；規劃包含雨水循環、植物復育與可供社區使用的開放空間。張峰溢以 CMAX ARCHITECTS STUDIO 執業建築師身分參與，並獲 2024 ISARCH Award Silver Award。', next:'中和國民運動中心：從地景與社區，走進大尺度的公共運動建築。', source:'https://www.ad.ntust.edu.tw/%E5%8F%B0%E7%A7%91%E5%BB%BA%E7%AF%891%E4%BD%8D%E5%9C%A8%E8%81%B7%E7%8F%AD%E5%BB%BA%E7%AF%89%E5%B8%AB%E3%80%8111%E4%BD%8D%E4%B8%80%E8%88%AC%E7%94%9F%E5%8F%83%E5%8A%A0isarch-award%E6%A6%AE%E7%8D%B21/' },
+      { no:'02', title:'中和國民運動中心', en:'ZHONGHE SPORTS CENTER', category:'public', tag:'新北 / 02', lead:'用三角幾何與大跨距結構，把運動變成城市可共享的日常場景。', relation:'運動 × 城市客廳', scale:'B2F–4F / 12,090 m²', state:'公開資料／參與作品', note:'公開資料提到本案以三角幾何構造、大跨距桁架與模矩化分割形成建築造型，並配置長 60 公尺、寬 12 公尺、挑高 8 公尺的大廳，提供兒童與長者共享使用。張峰溢列於參與團隊。', next:'連雲玥恆：從公共運動的聚集，轉進高密度住宅的居住尺度。', source:'https://ta-mag.net/ta/News.php?id=2272' },
+      { no:'03', title:'連雲玥恆集合住宅', en:'LIANYUN YUEHENG', category:'housing', tag:'台北大安 / 03', lead:'在狹長基地與高密度城市裡，重新定義次世代的居住生活。', relation:'限制 × 轉化', scale:'B7F–24F / 35,807 m²', state:'公開資料／參與作品', note:'基地面對寬 90 公尺、深度僅 26 公尺的條件，設計整合建築、結構、室內、景觀與燈光，在法規與城市限制下重新組織住宅生活。張峰溢列於公開資料中的專案團隊。', next:'莒光段公共住宅：從市場住宅的密度，連到公共住宅的社會性。', source:'https://www.ta-mag.net/ta/News.php?id=2283' },
+      { no:'04', title:'光盒之樹', en:'TREE OF LIGHT BOXES', category:'competition', tag:'烏來 / 04', lead:'將演講廳、教室與辦公空間錯落堆疊，讓光線成為建築的組織者。', relation:'光 × 教育場景', scale:'台電訓練所競圖', state:'CMAX／競圖提案', note:'張峰溢建築師事務所為台電訓練所所本部綜合大樓提出「光盒之樹」方案，以不同大小的空間量體回應光線需求，並在屋頂配置戶外花園；公開報導也提到方案以光、電與交流空間重新思考園區。', next:'台泥 DAKA 園區：從光與教育，回到永續地景與地方連結。', source:'https://www.mottimes.com/article/detail/2070' },
+      { no:'05', title:'基隆國光客運臨時轉運站', en:'KOU KUANG KEELUNG BUS TERMINAL', category:'built', tag:'基隆 / 05', lead:'以輕巧開放的轉運空間，縫合被鐵路切割的城市，也擁抱海洋。', relation:'流動 × 城市縫合', scale:'450 m² / 地上一層', state:'公開資料／參與作品', note:'公開資料將本案描述為配合基隆整體開發的臨時轉運站，以三座功能獨立的玻璃量體組成開放、輕巧的城市地景，材料包含金屬屋頂浪板、強化玻璃與鋼骨樑柱。張峰溢列於參與者。', next:'中和國民運動中心：從輕巧的城市節點，連到大型公共建築。', source:'https://www.ta-mag.net/ta/News.php?id=1484' },
+      { no:'06', title:'台北市萬華區莒光段公共住宅', en:'JU-GUANG PUBLIC HOUSING', category:'housing', tag:'台北萬華 / 06', lead:'把住宅、商業與社福機能疊合，讓居住成為更完整的公共生活。', relation:'居住 × 社會支持', scale:'B4F–17F / 27,597 m²', state:'公開資料／參與作品', note:'公開資料顯示本案用途包含商業、社福與住宅，並整合石材、磁磚、玻璃與鋁板等外牆材料。張峰溢列於公開團隊，作品以公共住宅作為社會生活的容器。', next:'連雲玥恆：從公共性回到個人居所的細節與尺度。', source:'https://www.ta-mag.net/ta/News.php?id=1164' }
+    ];
+    const grid = document.getElementById('islandGrid');
+    const detail = document.getElementById('detail');
+    let currentFilter = 'all';
+    function render() {
+      const query = document.getElementById('search').value.trim().toLowerCase();
+      const visible = islands.filter(item => (currentFilter === 'all' || item.category === currentFilter) && (!query || `${item.title} ${item.en} ${item.tag} ${item.lead} ${item.note}`.toLowerCase().includes(query)));
+      document.getElementById('resultCount').textContent = `${visible.length} 件作品`;
+      grid.innerHTML = visible.length ? visible.map(item => `<article class="card" data-no="${item.no}" tabindex="0" role="button" aria-label="探索${item.title}"><div class="card-tag"><span>${item.tag}</span><span>${item.en}</span></div><span class="card-arrow">↗</span><h3>${item.title}</h3><p>${item.lead}</p></article>`).join('') : '<div class="empty">找不到相符的島嶼，換一個關鍵字試試。</div>';
+      grid.querySelectorAll('.card').forEach(card => { card.addEventListener('click', () => openDetail(card.dataset.no)); card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(card.dataset.no); } }); });
+    }
+    function openDetail(no) { const item = islands.find(i => i.no === no); if (!item) return; document.getElementById('detailNo').textContent = `${item.no} / WORK`; document.getElementById('detailType').textContent = item.en.toUpperCase(); document.getElementById('detailTitle').textContent = item.title; document.getElementById('detailLead').textContent = item.lead; document.getElementById('detailRelation').textContent = item.relation; document.getElementById('detailScale').textContent = item.scale; document.getElementById('detailState').textContent = item.state; document.getElementById('detailNote').textContent = item.note; document.getElementById('detailNext').textContent = item.next; const source = document.getElementById('detailSource'); source.href = item.source; detail.classList.add('open'); detail.setAttribute('aria-hidden', 'false'); document.getElementById('closeDetail').focus(); }
+    function closeDetail() { detail.classList.remove('open'); detail.setAttribute('aria-hidden', 'true'); }
+    document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click', () => { currentFilter = btn.dataset.filter; document.querySelectorAll('.filter').forEach(b => b.classList.toggle('active', b === btn)); render(); }));
+    document.getElementById('search').addEventListener('input', render); document.getElementById('closeDetail').addEventListener('click', closeDetail); detail.addEventListener('click', e => { if (e.target === detail) closeDetail(); }); document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+    const panelButtons = [...document.querySelectorAll('[data-panel]')];
+    function showPanel(id) {
+      panelButtons.forEach(button => {
+        const panel = document.getElementById(button.dataset.panel);
+        panel.hidden = panel.id !== id;
+        button.setAttribute('aria-expanded', String(!panel.hidden));
+      });
+      document.dispatchEvent(new Event('maplayout'));
+    }
+    panelButtons.forEach(button => {
+      const panel = document.getElementById(button.dataset.panel);
+      button.addEventListener('click', () => {
+        const opening = panel.hidden;
+        showPanel(opening ? panel.id : null);
+        if (opening) panel.querySelector('.panel-close').focus();
+      });
+      panel.querySelector('.panel-close').addEventListener('click', () => {
+        showPanel(null);
+        button.focus();
+      });
+    });
+    render();
+  </script>
+  <script src="./scene.js"></script>
+</body>
+</html>
